@@ -1,7 +1,8 @@
-//keytermscomponent.js
+// KeyTermsComponent.js
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import data from "./data.xlsx";
+import "./KeyTermsComponent.css";
 
 function KeyTermsComponent() {
   const [definitions, setDefinitions] = useState([]);
@@ -53,16 +54,17 @@ function KeyTermsComponent() {
   };
 
   return (
-    <div>
-      <h1>Excel Dictionary</h1>
+    <div className="keyterms-container">
+      <h1 className="title">Excel Dictionary</h1>
       <input
         type="text"
         placeholder="Enter a key term"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        className="search-bar"
       />
-      <button onClick={handleSearch}>Search</button>
-      <p>{definition}</p>
+      <button onClick={handleSearch} className="search-button">Search</button>
+      <p className="definition">{definition}</p>
     </div>
   );
 }

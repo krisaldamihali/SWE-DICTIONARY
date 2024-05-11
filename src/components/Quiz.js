@@ -1,10 +1,16 @@
-import React, { useEffect, useReducer } from "react";
+import { useEffect, useReducer } from "react";
+import Header from "./Header";
+import Main from "./Main";
+import Loader from "./Loader";
+import Error from "./Error";
 import Question from "./Question";
 import NextButton from "./NextButton";
 import Progress from "./Progress";
+import FinishScreen from "./FinishScreen";
 import Footer from "./Footer";
 import Timer from "./Timer";
-import FinishScreen from "./FinishScreen";
+import "../index.css";
+import quizData from "./quiz.json"
 
 const SECS_PER_QUESTION = 5;
 
@@ -39,7 +45,6 @@ function reducer(state, action) {
       };
     case "newAnswer":
       const question = state.questions[state.index];
-
       return {
         ...state,
         answer: action.payload,
@@ -59,7 +64,6 @@ function reducer(state, action) {
       };
     case "restart":
       return { ...initialState, questions: state.questions, status: "ready" };
-
     case "tick":
       return {
         ...state,
@@ -72,9 +76,8 @@ function reducer(state, action) {
             : state.highscore,
         status: state.secondsRemaining === 0 ? "finished" : state.status,
       };
-
     default:
-      throw new Error("Action unknown");
+      throw new Error("Unknown action");
   }
 }
 
@@ -84,61 +87,74 @@ function Quiz() {
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  useEffect(() => {
-    fetch("https://vinayak9669.github.io/React_quiz_api/questions.json")
-      .then((res) => res.json())
-      .then((data) =>
-        dispatch({
-          type: "dataReceived",
-          payload: data["questions"],
-        })
-      )
-      .catch((err) => dispatch({ type: "dataFailed" }));
-  }, []);
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (status === "error") {
-    return <div>Error loading questions. Please try again.</div>;
-  }
-
-  if (status === "finished") {
-    return <FinishScreen points={points} />;
-  }
-
   const numQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce((prev, cur) => prev + cur.points, 0);
+  const maxPossiblePoints = questions.reduce(
+    (prev, cur) => prev + cur.points,
+    0
+  );
+
+  useEffect(() => {
+    dispatch({
+      type: "dataReceived",
+      payload: quizData.questions,
+    });
+  }, []);
+  
+  useEffect(() => {
+    if (status === "ready") {
+      dispatch({ type: "start" });
+    }
+  }, [status]);
 
   return (
-    <>
-      <Progress
-        index={index}
-        numQuestions={numQuestions}
-        points={points}
-        maxPossiblePoints={maxPossiblePoints}
-        answer={answer}
-      />
-      <Question
-        question={questions[index]}
-        dispatch={dispatch}
-        answer={answer}
-      />
-      <Footer>
-        <Timer
-          dispatch={dispatch}
-          secondsRemaining={secondsRemaining}
-        />
-        <NextButton
-          dispatch={dispatch}
-          answer={answer}
-          numQuestions={numQuestions}
-          index={index}
-        />
-      </Footer>
-    </>
+    <div className="wrapper">
+      <div className="app">
+        <div className="headerWrapper">
+          
+          <Main>
+          <Header />
+            {status === "loading" && <Loader />}
+            {status === "error" && <Error />}
+            {status === "active" && (
+              <>
+                <Progress
+                  index={index}
+                  numQuestions={numQuestions}
+                  points={points}
+                  maxPossiblePoints={maxPossiblePoints}
+                  answer={answer}
+                />
+                <Question
+                  question={questions[index]}
+                  dispatch={dispatch}
+                  answer={answer}
+                />
+                <Footer>
+                  <Timer
+                    dispatch={dispatch}
+                    secondsRemaining={secondsRemaining}
+                  />
+                  <NextButton
+                    dispatch={dispatch}
+                    answer={answer}
+                    numQuestions={numQuestions}
+                    index={index}
+                  />
+                </Footer>
+              </>
+            )}
+            {status === "finished" && (
+              <FinishScreen
+                points={points}
+                maxPossiblePoints={maxPossiblePoints}
+                highscore={highscore}
+                dispatch={dispatch}
+              />
+            )}
+          </Main>
+        </div>
+      </div>
+    </div>
   );
 }
-
 export default Quiz;

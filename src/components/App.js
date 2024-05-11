@@ -1,28 +1,20 @@
-
-import React, { useEffect, useReducer } from "react";
+import React from "react";
+import { useEffect, useReducer } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Header from "./Header";
 import Main from "./Main";
-import Loader from "./Loader";
 import Error from "./Error";
 import StartScreen from "./StartScreen";
-import Question from "./Question";
-import NextButton from "./NextButton";
-import Progress from "./Progress";
-import FinishScreen from "./FinishScreen";
-import Footer from "./Footer";
-import Timer from "./Timer";
-import KeyTermsComponent from "./KeyTermsComponent";
-import "../index.css";
 import Quiz from "./Quiz";
+import KeyTermsComponent from "./KeyTermsComponent";
+import quizData from "./quiz.json"
+import "../index.css";
+
 
 
 const SECS_PER_QUESTION = 5;
 
-// We need to define the intialState in order to use useReduce Hook.
 const initialState = {
   questions: [],
-  // 'loading', 'error', 'ready', 'active', 'finished'
   status: "loading",
   index: 0,
   answer: null,
@@ -51,8 +43,7 @@ function reducer(state, action) {
         secondsRemaining: state.questions.length * SECS_PER_QUESTION,
       };
     case "newAnswer":
-      const question = state.questions.at(state.index);
-
+      const question = state.questions[state.index];
       return {
         ...state,
         answer: action.payload,
@@ -72,7 +63,6 @@ function reducer(state, action) {
       };
     case "restart":
       return { ...initialState, questions: state.questions, status: "ready" };
-
     case "tick":
       return {
         ...state,
@@ -85,96 +75,47 @@ function reducer(state, action) {
             : state.highscore,
         status: state.secondsRemaining === 0 ? "finished" : state.status,
       };
-
     default:
-      throw new Error("Action unkonwn");
+      throw new Error("Unknown action");
   }
 }
 
 export default function App() {
   const [
-    { questions, status, index, answer, points, highscore, secondsRemaining },
+    { questions, status },
     dispatch,
   ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce(
-    (prev, cur) => prev + cur.points,
-    0
-  );
+  
 
-  useEffect(function () {
-    fetch("https://vinayak9669.github.io/React_quiz_api/questions.json")
-      .then((res) => res.json())
-      .then((data) =>
-        dispatch({
-          type: "dataReceived",
-          payload: data["questions"],
-        })
-      )
-      .catch((err) => dispatch({ type: "dataFailed" }));
+  useEffect(() => {
+    dispatch({
+      type: "dataReceived",
+      payload: quizData.questions,
+    });
   }, []);
+  
+  useEffect(() => {
+    if (status === "ready") {
+      dispatch({ type: "start" });
+    }
+  }, [status]);
+
 
   return (
     <Router>
       <div className="wrapper">
         <div className="app">
           <div className="headerWrapper">
-            <Header />
-
+            
             <Main>
+           
               <Routes>
-                <Route
-                  path="/"
-                  element={<StartScreen numQuestions={numQuestions} dispatch={dispatch} />}
-                />
-                <Route
-                  path="/KeyTermsComponent"
-                  element={<KeyTermsComponent />}
-                />
-                <Route
-                  path="/Quiz"
-                  element={<Quiz />}
-                />
+                <Route path="/Quiz" element={<Quiz />} />
+                <Route path="/KeyTermsComponent" element={<KeyTermsComponent />} />
+                <Route path="/" element={<StartScreen numQuestions={numQuestions} dispatch={dispatch} status={status} />} />
               </Routes>
-              {status === "loading" && <Loader />}
-              {status === "error" && <Error />}
-              {status === "active" && (
-                <>
-                  <Progress
-                    index={index}
-                    numQuestions={numQuestions}
-                    points={points}
-                    maxPossiblePoints={maxPossiblePoints}
-                    answer={answer}
-                  />
-                  <Question
-                    question={questions[index]}
-                    dispatch={dispatch}
-                    answer={answer}
-                  />
-                  <Footer>
-                    <Timer
-                      dispatch={dispatch}
-                      secondsRemaining={secondsRemaining}
-                    />
-                    <NextButton
-                      dispatch={dispatch}
-                      answer={answer}
-                      numQuestions={numQuestions}
-                      index={index}
-                    />
-                  </Footer>
-                </>
-              )}
-              {status === "finished" && (
-                <FinishScreen
-                  points={points}
-                  maxPossiblePoints={maxPossiblePoints}
-                  highscore={highscore}
-                  dispatch={dispatch}
-                />
-              )}
             </Main>
           </div>
         </div>
@@ -182,3 +123,5 @@ export default function App() {
     </Router>
   );
 }
+
+
