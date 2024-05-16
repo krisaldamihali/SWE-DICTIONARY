@@ -6,12 +6,12 @@
       "correctOption": 0,
       "points": 10
     },
-    {
-      "question": "What is the process of ensuring that a software product can be used by people with a wide range of abilities and disabilities?",
-      "options": ["Usability testing", "Accessibility testing", "Performance testing", "Security testing"],
-      "correctOption": 1,
-      "points": 10
-    },
+     {
+        "question": "What is the term for an error, flaw, or fault in a software program that causes it to behave unexpectedly?",
+        "options": ["Bug", "Defect", "Fault", "Failure"],
+        "correctOption": 0,
+        "points": 10
+      },
     {
       "question": "Which phase involves generating essential documents like requirements, design specifications, user manuals, and technical guides?",
       "options": ["Coding", "Testing phase", "Documentation phase", "Design phase"],
